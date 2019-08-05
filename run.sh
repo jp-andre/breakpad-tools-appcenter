@@ -26,6 +26,5 @@ if [ "${NO_SYSTEM_SYMBOLS}" = "" ] ; then
   docker cp ${DOCKER_ID}:/home/breakpad/symbols ${SYM_DIR}
 fi
 
-echo "Now you can run:"
-echo "  ./make_symbols_zip.sh ${SYM_DIR}"
+./make_symbols_zip.sh ${SYM_DIR}
 

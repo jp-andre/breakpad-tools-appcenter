@@ -13,6 +13,6 @@ done
 cd "${SYM_DIR}/zip"
 zip -r "${SYM_DIR}/symbols.zip" *
 
-echo "The symbols are ready at:"
+echo "The symbols are ready for upload at:"
 echo "  ${SYM_DIR}/symbols.zip"
 
