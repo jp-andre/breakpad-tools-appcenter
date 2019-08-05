@@ -21,7 +21,7 @@ for SO_FILE in $@ ; do
   cp -f "${SYM_FILE}" "${SYM_DIR}"
 done
 
-if [ "${NO_SYSTEM_SYMBOLS}" = "" ] ; then
+if [ "${SYSTEM_SYMBOLS}" = "1" ] ; then
   DOCKER_ID=`docker ps -q -a -l`
   docker cp ${DOCKER_ID}:/home/breakpad/symbols ${SYM_DIR}
 fi

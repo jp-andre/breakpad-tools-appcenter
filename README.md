@@ -10,7 +10,7 @@ Docker should be installed and running.
 
 ## Usage
 1. Prepare the docker container by running the following command.
-This can take a few minutes, and will use a lot of disk space (over 5Gb).
+This can take a few minutes, and will use a lot of disk space (over 5Gb):
 ```bash
 ./build.sh
 ```
@@ -19,6 +19,7 @@ This can take a few minutes, and will use a lot of disk space (over 5Gb).
 ```bash
 ./run.sh <path_to_android_ndk_app>/app/build/intermediates/ndkBuild/debug/obj/local/*/*.so
 ```
+Pass all `.so` files as argument to `run.sh` and a file `symbols.zip` will be created automatically.
 
 3. (Bonus) To enter the docker container, which contains all breakpad tools (`dump_syms`, `minidump_stackwalk`, etc...):
 ```bash
@@ -28,3 +29,4 @@ This can take a few minutes, and will use a lot of disk space (over 5Gb).
 ## Known problems
 System symbols from a running Android device are not extracted by the `breakpad` client.
 This means we can't get any meaningful information unless we integrate the symbol extraction in the SDK itself.
+
