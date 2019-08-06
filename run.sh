@@ -3,7 +3,7 @@
 set -e
 
 TIMESTAMP=`TZ=UTC date "+%Y-%m-%dT%H-%M-%SZ"`
-SYM_DIR=${SYM_DIR:-"/tmp/symbols/${TIMESTAMP}"}
+SYM_DIR=${SYM_DIR:-/tmp/symbols/${TIMESTAMP}}
 
 if [ "$1" = "" ] ; then
   exec docker run -it breakpad
@@ -16,15 +16,20 @@ for SO_FILE in $@ ; do
   SYM_FILE="${SO_DIR}/${SO_NAME}.sym"
   mkdir -p "${SYM_DIR}"
 
-  docker run --name breakpad --rm -i -v ${SO_DIR}:/home/breakpad/mnt breakpad bash -c "/usr/local/bin/dump_syms /home/breakpad/mnt/${SO_NAME} > /home/breakpad/mnt/${SO_NAME}.sym"
+  docker run --name breakpad --rm -i -v ${SO_DIR}:/work/mnt breakpad bash -c "/usr/local/bin/dump_syms /work/mnt/${SO_NAME} > /work/mnt/${SO_NAME}.sym"
 
   cp -f "${SYM_FILE}" "${SYM_DIR}"
 done
 
-if [ "${SYSTEM_SYMBOLS}" = "1" ] ; then
-  DOCKER_ID=`docker ps -q -a -l`
-  docker cp ${DOCKER_ID}:/home/breakpad/symbols ${SYM_DIR}
-fi
+for SYM_FILE in `find ${SYM_DIR} -type f` ; do
+  SO_ID=`head -n1 "${SYM_FILE}" |cut -d ' ' -f 4`
+  SO_NAME=`head -n1 "${SYM_FILE}" |cut -d ' ' -f 5`
+  mkdir -p "${SYM_DIR}/zip/${SO_NAME}/${SO_ID}"
+  cp -f "${SYM_FILE}" "${SYM_DIR}/zip/${SO_NAME}/${SO_ID}/"
+done
 
-./make_symbols_zip.sh ${SYM_DIR}
+cd "${SYM_DIR}/zip"
+zip -r "${SYM_DIR}/symbols.zip" *
 
+echo "The symbols are ready for upload at:"
+echo "  ${SYM_DIR}/symbols.zip"
