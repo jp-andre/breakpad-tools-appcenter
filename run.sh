@@ -14,7 +14,7 @@ if [ "$1" = "-q" ] ; then
 fi
 
 if [ "$1" = "" ] ; then
-  [ -z "$QUIET" ] && echo "Entering docker container..." 
+  [ -z "$QUIET" ] && echo "Entering docker container..."
   exec docker run -it breakpad
   exit $?
 fi

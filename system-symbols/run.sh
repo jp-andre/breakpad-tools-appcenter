@@ -2,13 +2,25 @@
 
 set -e
 
-TIMESTAMP=`TZ=UTC date "+%Y-%m-%dT%H-%M-%SZ"`
-SYM_DIR=${SYM_DIR:-"/tmp/symbols/${TIMESTAMP}"}
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
+  echo "Extract symbols and prepare symbols.zip file ready to upload to App Center."
+  echo "Usage: $0 [-q] [*.so]"
+  exit 0
+fi
+
+if [ "$1" = "-q" ] ; then
+  QUIET=1
+  shift
+fi
 
 if [ "$1" = "" ] ; then
-  exec docker run -it breakpad
+  [ -z "$QUIET" ] && echo "Entering docker container..."
+  exec docker run -it breakpad-system
   exit $?
 fi
+
+[ -z "$QUIET" ] && echo "Extracting symbols..."
+SYM_DIR=${SYM_DIR:-`mktemp -d`}
 
 for SO_FILE in $@ ; do
   SO_DIR=`dirname ${SO_FILE}`
@@ -16,16 +28,15 @@ for SO_FILE in $@ ; do
   SYM_FILE="${SO_DIR}/${SO_NAME}.sym"
   mkdir -p "${SYM_DIR}"
 
-  docker run --name breakpad --rm -i -v ${SO_DIR}:/home/breakpad/mnt breakpad bash -c "/usr/local/bin/dump_syms /home/breakpad/mnt/${SO_NAME} > /home/breakpad/mnt/${SO_NAME}.sym"
+  docker run --name breakpad-system --rm -i -v ${SO_DIR}:/home/breakpad/mnt breakpad bash -c "/usr/local/bin/dump_syms /home/breakpad/mnt/${SO_NAME} > /home/breakpad/mnt/${SO_NAME}.sym"
 
   cp -f "${SYM_FILE}" "${SYM_DIR}"
 done
 
-if [ "${SYSTEM_SYMBOLS}" = "1" ] ; then
-  DOCKER_ID=`docker ps -q -a -l`
-  docker cp ${DOCKER_ID}:/home/breakpad/symbols ${SYM_DIR}
-fi
+DOCKER_ID=`docker ps -q -a -l`
+docker cp ${DOCKER_ID}:/home/breakpad/symbols ${SYM_DIR}
 
+[ -z "$QUIET" ] && echo "Preparing zip archive..."
 for SYM_FILE in `find ${SYM_DIR} -type f` ; do
   SO_ID=`head -n1 "${SYM_FILE}" |cut -d ' ' -f 4`
   SO_NAME=`head -n1 "${SYM_FILE}" |cut -d ' ' -f 5`
@@ -34,7 +45,7 @@ for SYM_FILE in `find ${SYM_DIR} -type f` ; do
 done
 
 cd "${SYM_DIR}/zip"
-zip -r "${SYM_DIR}/symbols.zip" *
+zip -q -r "${SYM_DIR}/symbols.zip" *
 
-echo "The symbols are ready for upload at:"
+[ -z "$QUIET" ] && echo "The symbols are ready for upload at:"
 echo "  ${SYM_DIR}/symbols.zip"
