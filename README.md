@@ -10,7 +10,6 @@ Docker should be installed and running.
 
 ## Usage
 1. Prepare the docker container by running the following command.
-This can take a few minutes, and will use a lot of disk space (over 5Gb):
 ```bash
 ./build.sh
 ```
