@@ -13,5 +13,4 @@ fi
 
 echo "${SHA} ${NDK}" | sha1sum -c -
 
-docker build -t breakpad .
-
+docker build -t breakpad-system .

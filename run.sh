@@ -2,13 +2,25 @@
 
 set -e
 
-TIMESTAMP=`TZ=UTC date "+%Y-%m-%dT%H-%M-%SZ"`
-SYM_DIR=${SYM_DIR:-/tmp/symbols/${TIMESTAMP}}
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] ; then
+  echo "Extract symbols and prepare symbols.zip file ready to upload to App Center."
+  echo "Usage: $0 [-q] [*.so]"
+  exit 0
+fi
+
+if [ "$1" = "-q" ] ; then
+  QUIET=1
+  shift
+fi
 
 if [ "$1" = "" ] ; then
+  [ -z "$QUIET" ] && echo "Entering docker container..." 
   exec docker run -it breakpad
   exit $?
 fi
+
+[ -z "$QUIET" ] && echo "Extracting symbols..."
+SYM_DIR=${SYM_DIR:-`mktemp -d`}
 
 for SO_FILE in $@ ; do
   SO_DIR=`dirname ${SO_FILE}`
@@ -21,6 +33,7 @@ for SO_FILE in $@ ; do
   cp -f "${SYM_FILE}" "${SYM_DIR}"
 done
 
+[ -z "$QUIET" ] && echo "Preparing zip archive..."
 for SYM_FILE in `find ${SYM_DIR} -type f` ; do
   SO_ID=`head -n1 "${SYM_FILE}" |cut -d ' ' -f 4`
   SO_NAME=`head -n1 "${SYM_FILE}" |cut -d ' ' -f 5`
@@ -29,7 +42,7 @@ for SYM_FILE in `find ${SYM_DIR} -type f` ; do
 done
 
 cd "${SYM_DIR}/zip"
-zip -r "${SYM_DIR}/symbols.zip" *
+zip -q -r "${SYM_DIR}/symbols.zip" *
 
-echo "The symbols are ready for upload at:"
-echo "  ${SYM_DIR}/symbols.zip"
+[ -z "$QUIET" ] && echo "The symbols are ready for upload at:"
+echo "${SYM_DIR}/symbols.zip"

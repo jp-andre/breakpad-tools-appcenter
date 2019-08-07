@@ -38,4 +38,3 @@ for ARCH in ${PLATFORM_ARCH} ; do
     fi
   done
 done
-

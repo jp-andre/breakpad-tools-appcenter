@@ -27,6 +27,4 @@ Pass all `.so` files as argument to `run.sh` and a file `symbols.zip` will be cr
 ```
 
 ## Known problems
-System symbols from a running Android device are not extracted by the `breakpad` client.
-This means we can't get any meaningful information unless we integrate the symbol extraction in the SDK itself.
-
+System symbols from a running Android device are not extracted by the `breakpad` client. So we can not symbolicate system libraries such as `libc`.
